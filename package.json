@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "@noble/ed25519": "^3.1.0",
+    "@noble/hashes": "^2.3.0"
+  },
+  "name": "blog-bot",
+  "version": "1.0.0",
+  "description": "QQ 机器人驱动的博客自动发布后端。在 QQ 里发文字/发图就能写博文、发动态、加友链，后端拼成 Markdown 并提交到 GitHub 仓库触发部署。零服务器成本（cf / eo 双模式，无微信、无 R2）。",
+  "main": "worker.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

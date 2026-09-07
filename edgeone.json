@@ -1,0 +1,5 @@
+{
+  "name": "blog-bot",
+  "installCommand": "echo 'edge functions only - no node_modules needed'",
+  "buildCommand": "echo 'edge functions only - no build step'"
+}

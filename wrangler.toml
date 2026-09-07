@@ -1,0 +1,48 @@
+name = "blog-bot"
+main = "worker.js"
+compatibility_date = "2024-09-23"
+
+# 保留 workers.dev 子域名与预览 URL（远程已开启；本地不显式设会被 wrangler 在有 routes 时算成 false 而禁用）
+workers_dev = true
+preview_urls = true
+
+# 自定义域名：已在 Cloudflare 后台绑定 bot.yufish.cn（zone: yufish.cn）。
+# 务必保留——wrangler deploy 会用本地配置覆盖远程，本地没有这条就会把该路由删掉，
+# 导致 QQ 回调 / /api/waline Webhook 全部失效。
+routes = [
+  { pattern = "bot.yufish.cn", zone_name = "yufish.cn", custom_domain = true }
+]
+
+# KV：存草稿 + 缓存 access_token
+[[kv_namespaces]]
+binding = "DRAFTS"
+id = "65cc605e43144fa3aa60e057a6a737d0"
+
+# 非敏感变量（也可改成 secret put，看你自己）
+[vars]
+GH_OWNER = "ImYufish"
+GH_REPO = "my-blog"
+GH_BRANCH = "master"
+GH_PATH = "src/content/posts"              # Firefly 文章目录
+GH_DYNAMIC_PATH = "src/content/dynamic"     # Firefly 动态目录
+SITE_URL = "https://x1anyu.cn"            # 分配的域名或自定义域名（不要带末尾斜杠）
+FILENAME_FORMAT = "title"                 # 文章文件名格式：title=纯标题(标题.md，默认) / date=带日期(YYYY-MM-DD-标题.md)。动态始终用时间戳，不受此开关影响
+DEPLOY_MODE = "cf"                     # 部署模式：cf=纯 Cloudflare（Worker 自己验签+回包，QQ 回调直接打 Worker）/ eo=纯 EdgeOne（边缘函数自己处理 QQ 回调）。不再支持 hybrid。
+FRIEND_PAGE_URL = "https://x1anyu.cn/friends/"  # /友链 添加成功后回显的「浏览链接」（博客友链页，可改）
+WALINE_AUTHOR_MAIL = "blog@x1anyu.cn"  # /api/waline 跳过博主自己评论：精确匹配评论 mail
+FL_OWNER = "ImYufish"               # 友链真源仓库 owner（Friend-Circle-Lite，friends.json 为博客兼容的双写格式）
+FL_REPO = "Friend-Circle-Lite"      # 友链真源仓库名
+FL_BRANCH = "main"                  # 友链真源分支
+FL_PATH = "friends.json"            # 友链真源文件路径（仓库根目录）
+QQ_APPID = "1905439104"               # QQ 机器人 AppID（已填，非敏感放 vars）
+QQ_CALLBACK_PATH = "/qq/callback"    # QQ Webhook 回调路径，与 worker.js 路由一致
+IMG_BED_URL = "https://imgbed.yufish.cn"   # 图床地址（自建 CloudFlare ImgBed 实例）。QQ 发图会传到这里再拿公开 URL 塞进草稿
+IMG_BED_CHANNEL = ""                       # 图床上传渠道；留空=用你图床实例默认渠道。若上传报 channel 错，按实例实际配置填（cfr2 / telegram / s3 / discord）
+
+# 敏感信息用 secret（不在文件里）：
+# wrangler secret put GH_TOKEN       # GitHub PAT
+# wrangler secret put QQ_APP_SECRET  # QQ 机器人 AppSecret：既换 access_token，又当 Ed25519 私钥做 Webhook 签名校验（无独立 BotSecret）
+# wrangler secret put ALERT_TOKEN    # /api/alert 告警接口鉴权 token（自定随机串；FCL 仓库 Secrets 里配同名值）
+# wrangler secret put QQ_OWNER_OPENID # 告警推送目标（你自己的 user_openid）：先给机器人发条私聊，再访问 /__qqwho?token=<ALERT_TOKEN> 获取
+# wrangler secret put IMG_BED_TOKEN   # 图床 API Token（需 upload + delete 双权限）：上传图片 + /删图 同步删图床都靠它，Authorization: Bearer
+# wrangler secret put IMG_BED_AUTH    # （可选）图床上传认证码 authCode，作为 IMG_BED_TOKEN 的兜底；二选一即可
